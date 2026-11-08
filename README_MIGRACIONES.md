@@ -2,7 +2,7 @@
 
 Un cambio en `Core/models.py` describe cómo quieres que sea un modelo; no modifica por sí solo la base existente. Las migraciones conservan esas decisiones en archivos y permiten aplicar la misma estructura en otra instalación.
 
-La carpeta física de la aplicación es `Core`, pero su etiqueta Django es **`bodega`**. Por eso se usa `makemigrations bodega` y las diez tablas del negocio mantienen el prefijo `bodega_`. Consulta [el listado y sus pantallas](docs/tablas_bd.md). No cambies esa etiqueta para renombrar la carpeta: forma parte del historial existente.
+La carpeta física de la aplicación es `Core`, pero su etiqueta Django es **`bodega`**. Por eso se usa `makemigrations bodega` y las tablas del negocio mantienen el prefijo `bodega_`. Consulta [el modelo actual de Bodega](docs/diagrama_bodega_e3.md). No cambies esa etiqueta para renombrar la carpeta: forma parte del historial existente.
 
 ## Primera instalación
 
@@ -33,6 +33,8 @@ Una instalación nueva utiliza las migraciones guardadas. No necesita generar ot
 | `0003_integridad_movimientos.py` | Restricciones de cantidad y tipo del movimiento, índice por fecha/identificador y nombres legibles |
 | `0004_normalizar_motivos_movimientos.py` | Migración de datos: reemplaza la mención a Faker por «Recepción de mercadería» en ingresos y normaliza «venta» como «Por venta» en salidas |
 | `0005_diez_tablas_bodega.py` | Añade Marca, Proveedor, Cliente, Compra, DetalleCompra, Venta y DetalleVenta; agrega marca opcional al producto y referencias opcionales de origen a movimientos, con restricciones |
+| `0006_producto_precio_estado.py` | E3: añade precio decimal no negativo y estado ACTIVO/INACTIVO a Producto; conserva las filas y sus campos anteriores. Precio inicial 0,00 pendiente de definir y estado inicial ACTIVO. |
+| `0007_bodega_solicitudes_stock.py` | Pauta Bodega E3: Sucursal, Solicitud y DetalleSolicitud, proveedor opcional en productos anteriores, descripción de categoría, proveedor activo y trazabilidad de stock/solicitud en Movimiento. Conserva los diez modelos previos. |
 
 La segunda migración es una modificación real posterior al modelo inicial: permite distinguir las existencias actuales de su umbral mínimo. La tercera refuerza la integridad para que también se respeten las reglas cuando se guardan datos fuera de un formulario.
 
@@ -76,11 +78,19 @@ Como ejemplo futuro, añadir una descripción opcional a Producto requeriría de
 
 ```powershell
 python manage.py makemigrations --check --dry-run
-python manage.py test Core
+$motorPruebasAnterior = $env:MUSICPRO_DB_ENGINE
+try {
+    $env:MUSICPRO_DB_ENGINE = 'sqlite'
+    python manage.py test Core
+    if ($LASTEXITCODE -ne 0) { throw 'Las pruebas no finalizaron correctamente.' }
+} finally {
+    if ($null -eq $motorPruebasAnterior) { Remove-Item Env:\MUSICPRO_DB_ENGINE -ErrorAction SilentlyContinue }
+    else { $env:MUSICPRO_DB_ENGINE = $motorPruebasAnterior }
+}
 ```
 
-El primer comando detecta cambios de modelos que todavía no tengan migración, sin crear archivos. El segundo ejecuta las pruebas en una base temporal de Django.
+La comprobación detecta cambios de modelos que todavía no tengan migración, sin crear archivos. La selección explícita de SQLite ejecuta las pruebas en una base temporal de Django. `finally` restaura después la selección anterior, incluso si las pruebas fallan.
 
-Conserva las migraciones en Git junto con los modelos y [el diagrama](docs/diagrama_bd.md). No borres el historial ni edites una migración ya aplicada para simular otro esquema. Una migración puede alterar o eliminar información; revisa sus operaciones y realiza cualquier ensayo sobre un archivo SQLite independiente mediante `MUSICPRO_DB_PATH`, como enseña [README.md](README.md).
+Conserva las migraciones en Git junto con los modelos y [el diagrama actual](docs/diagrama_bodega_e3.md). No borres el historial ni edites una migración ya aplicada para simular otro esquema. Una migración puede alterar o eliminar información; revisa sus operaciones y realiza cualquier ensayo sobre un archivo independiente, seleccionando `MUSICPRO_DB_ENGINE=sqlite` y una ruta nueva en `MUSICPRO_DB_PATH`.
 
 Migrar prepara la estructura; [cargar datos con Faker](README_SEEDER.md) añade registros. Son operaciones diferentes y se ejecutan en ese orden.

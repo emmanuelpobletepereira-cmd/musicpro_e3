@@ -1,0 +1,7 @@
+{
+  "NAME": "musicpro_e3",
+  "USER": "musicpro_app",
+  "PASSWORD": "REEMPLAZAR_CON_TU_CLAVE_LOCAL",
+  "HOST": "127.0.0.1",
+  "PORT": "3306"
+}

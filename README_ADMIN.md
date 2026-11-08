@@ -1,22 +1,38 @@
 # Administrar la bodega con Django Admin
 
-Esta guía prepara la demostración de la evaluación 2: administrar los diez modelos de negocio de Music Pro y comprobar que las acciones cambian la base SQLite. La instalación y los seis apartados completos están en [README.md](README.md).
+Esta guía conserva el recorrido de Django Admin de la evaluación 2. Para la entrega actual de E3 se utilizan las pantallas propias descritas en [README_E3.md](README_E3.md). Los ejemplos siguientes preparan una base SQLite de ensayo independiente; la conexión habitual de este equipo apunta a WampServer.
 
 ## Iniciar y acceder
 
 Con el entorno virtual activado y dentro de la carpeta de `manage.py`:
 
 ```powershell
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
+$motorAdminAnterior = $env:MUSICPRO_DB_ENGINE
+$rutaAdminAnterior = $env:MUSICPRO_DB_PATH
+$archivoEnsayoAdmin = Join-Path (Get-Location) ('admin-ensayo-' + [guid]::NewGuid().ToString('N') + '.sqlite3')
+try {
+    $env:MUSICPRO_DB_ENGINE = 'sqlite'
+    $env:MUSICPRO_DB_PATH = $archivoEnsayoAdmin
+    python manage.py migrate
+    if ($LASTEXITCODE -ne 0) { throw 'No se pudo preparar la base de ensayo.' }
+    python manage.py cargar_datos --cantidad 100 --semilla 42 --completo
+    if ($LASTEXITCODE -ne 0) { throw 'No se completó la carga ficticia.' }
+    python manage.py createsuperuser
+    if ($LASTEXITCODE -ne 0) { throw 'No se creó la cuenta de ensayo.' }
+    python manage.py runserver
+} finally {
+    if ($null -eq $motorAdminAnterior) { Remove-Item Env:\MUSICPRO_DB_ENGINE -ErrorAction SilentlyContinue }
+    else { $env:MUSICPRO_DB_ENGINE = $motorAdminAnterior }
+    if ($null -eq $rutaAdminAnterior) { Remove-Item Env:\MUSICPRO_DB_PATH -ErrorAction SilentlyContinue }
+    else { $env:MUSICPRO_DB_PATH = $rutaAdminAnterior }
+}
 ```
 
 - `migrate` crea o actualiza las tablas, incluidos usuarios y permisos.
 - `createsuperuser` crea una cuenta administradora; no muestra los caracteres de la contraseña al escribirla.
 - `runserver` inicia el servidor. Abre [el administrador](http://127.0.0.1:8000/admin/) e inicia sesión. `Ctrl+C` detiene el servidor.
 
-Las credenciales pertenecen al archivo SQLite activo. Si cambiaste `MUSICPRO_DB_PATH`, revisa `python manage.py verificar_bd`: la base de un ensayo tiene usuarios propios y puede requerir otro superusuario.
+Las credenciales pertenecen al archivo de ensayo seleccionado dentro del bloque, no a la base habitual. Al detener el servidor con Ctrl+C, `finally` restaura los valores anteriores de ambas variables. El archivo de ensayo se conserva para consultarlo después.
 
 ## Cómo se configura
 
@@ -66,10 +82,7 @@ En la página inicial de Admin, la sección **Bodega** muestra **Categorías, Ma
 
 Para disponer de ejemplos relacionados en todas las tablas:
 
-```powershell
-python manage.py cargar_datos --cantidad 100 --semilla 42 --completo
-python manage.py verificar_bd
-```
+La preparación del bloque inicial carga 100 productos mediante `cargar_datos --cantidad 100 --semilla 42 --completo`, exclusivamente en su archivo nuevo de ensayo. Para revisar esa base con `verificar_bd`, selecciona tanto `MUSICPRO_DB_ENGINE=sqlite` como su `MUSICPRO_DB_PATH`; la ruta por sí sola no cambia la conexión de WampServer.
 
 La carga añade registros ficticios sin eliminar los anteriores. En **Ventas**, abre un documento, observa su cliente y sus detalles. En **Detalles de ventas**, busca el mismo número; cada fila señala un producto, cantidad y precio. En **Movimientos**, busca ese número para encontrar la salida vinculada y el motivo **Por venta**. El recorrido equivalente de **Compras** termina en un ingreso **Recepción de mercadería**.
 
@@ -90,6 +103,6 @@ Un superusuario puede administrar todos los modelos. Para demostrar acceso limit
 
 Los diez modelos tienen permisos equivalentes para sus propias acciones. Para usar el autocompletado de una relación, concede permiso de consulta o modificación sobre el modelo relacionado; por ejemplo, consulta de categorías al editor de productos. Prueba la cuenta limitada cerrando la sesión del superusuario e iniciando la de prueba.
 
-Los formularios HTML de productos también comprueban los permisos de creación, edición y eliminación. Las consultas públicas del inventario y de movimientos siguen disponibles sin entrar al panel. Para las cuentas que acceden por el login del Admin, se necesita además `is_staff=True`.
+Los formularios HTML de productos también comprueban los permisos de creación, edición y eliminación. Las pantallas propias de inventario y movimientos requieren sesión y sus permisos correspondientes. Para las cuentas que acceden por el login del Admin se necesita además `is_staff=True`; ese requisito no se aplica al login propio de E3.
 
-Para explicar el resultado al docente, relaciona cada acción con su efecto: crear inserta una fila, consultar lee la información, modificar actualiza campos y eliminar borra la fila cuando las relaciones protegidas lo permiten. La [matriz de la rúbrica](docs/rubrica_e2.md) identifica la evidencia de cada indicador.
+Para explicar el resultado al docente, relaciona cada acción con su efecto: crear inserta una fila, consultar lee la información, modificar actualiza campos y eliminar borra la fila cuando las relaciones protegidas lo permiten. Para el alcance de la entrega actual consulta [la matriz de E3](docs/pauta_e3_bodega.md).

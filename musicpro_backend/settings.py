@@ -60,15 +60,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'musicpro_backend.wsgi.application'
 
 
-# Database
-# SQLite: base local utilizada por los modelos y Django Admin
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': Path(os.environ.get('MUSICPRO_DB_PATH', BASE_DIR / 'db.sqlite3')),
-        'OPTIONS': {'timeout': 30},
-    }
-}
+# La conexión local de WampServer tiene prioridad cuando está configurada.
+# El modo de desarrollo SQLite se puede seleccionar explícitamente.
+from .database_config import configurar_base_datos
+
+DATABASES = {'default': configurar_base_datos(BASE_DIR)}
 
 
 # Password validation
@@ -104,3 +100,8 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Acceso de la aplicación E3. Las sesiones y CSRF usan middleware de Django.
+LOGIN_URL = 'bodega:login'
+LOGIN_REDIRECT_URL = 'bodega:inicio'
+LOGOUT_REDIRECT_URL = 'bodega:login'

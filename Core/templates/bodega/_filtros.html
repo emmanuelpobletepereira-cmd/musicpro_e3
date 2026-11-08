@@ -1,0 +1,8 @@
+<form method="get" class="filtros" aria-label="Filtrar productos">
+  <div class="campo campo-busqueda"><label for="q">Buscar producto</label><input id="q" name="q" value="{{ filtros.q }}" maxlength="120" placeholder="Código o nombre"></div>
+  <div class="campo"><label for="categoria">Categoría</label><select id="categoria" name="categoria"><option value="">Todas las categorías</option>{% for categoria in categorias %}<option value="{{ categoria.pk }}"{% if filtros.categoria|stringformat:'s' == categoria.pk|stringformat:'s' %} selected{% endif %}>{{ categoria.nombre }}</option>{% endfor %}</select></div>
+  <div class="campo"><label for="estado">Estado</label><select id="estado" name="estado"><option value="">Todos los estados</option>{% for valor, etiqueta in estados %}<option value="{{ valor }}"{% if filtros.estado == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select></div>
+  <label class="opcion"><input type="checkbox" name="critico" value="1"{% if filtros.critico == '1' %} checked{% endif %}> Stock crítico</label>
+  <button class="boton primario" type="submit">Consultar</button>
+  <a class="enlace-secundario" href="{{ request.path }}">Limpiar</a>
+</form>

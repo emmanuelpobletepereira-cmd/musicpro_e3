@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.conf import settings
+from django.core.exceptions import PermissionDenied
+from django.db import connections
 from django.db.models import F
 from .models import (
     Categoria, Cliente, Compra, DetalleCompra, DetalleVenta, Marca,
@@ -8,6 +11,17 @@ from .models import (
 admin.site.site_header = 'Music Pro - Bodega'
 admin.site.site_title = 'Music Pro'
 admin.site.index_title = 'Administración de inventario'
+
+
+class AdminConFechasCompatibles(admin.ModelAdmin):
+    def get_changelist_instance(self, request):
+        listado = super().get_changelist_instance(request)
+        conexion = connections[listado.queryset.db]
+        # La navegación por años/meses requiere zonas en el servidor. Los
+        # filtros laterales usan límites de fecha y siguen disponibles.
+        if settings.USE_TZ and not conexion.features.has_zoneinfo_database:
+            listado.date_hierarchy = None
+        return listado
 
 
 class StockCriticoFilter(admin.SimpleListFilter):
@@ -59,8 +73,8 @@ class ContactoAdmin(admin.ModelAdmin):
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ('codigo', 'nombre', 'categoria', 'marca', 'ubicacion', 'cantidad', 'stock_minimo', 'stock_critico')
-    list_filter = ('categoria', 'marca', StockCriticoFilter)
+    list_display = ('codigo', 'nombre', 'categoria', 'marca', 'estado', 'ubicacion', 'cantidad', 'stock_minimo', 'stock_critico')
+    list_filter = ('estado', 'categoria', 'marca', StockCriticoFilter)
     search_fields = ('codigo', 'nombre', 'ubicacion')
     autocomplete_fields = ('categoria', 'marca')
     list_select_related = ('categoria', 'marca')
@@ -71,6 +85,7 @@ class ProductoAdmin(admin.ModelAdmin):
     readonly_fields = ('id',)
     fieldsets = (
         ('Identificación', {'fields': ('id', 'codigo', 'nombre', 'categoria', 'marca')}),
+        ('Estado del producto', {'fields': ('estado',)}),
         ('Almacenamiento', {'fields': ('ubicacion',)}),
         ('Control de stock', {
             'fields': ('cantidad', 'stock_minimo'),
@@ -114,7 +129,7 @@ class DetalleVentaInline(admin.TabularInline):
 
 
 @admin.register(Compra)
-class CompraAdmin(admin.ModelAdmin):
+class CompraAdmin(AdminConFechasCompatibles):
     list_display = ('id', 'numero', 'proveedor', 'fecha')
     list_filter = ('fecha', 'proveedor')
     search_fields = ('numero', 'proveedor__nombre', 'proveedor__rut', 'observaciones')
@@ -132,7 +147,7 @@ class CompraAdmin(admin.ModelAdmin):
 
 
 @admin.register(Venta)
-class VentaAdmin(admin.ModelAdmin):
+class VentaAdmin(AdminConFechasCompatibles):
     list_display = ('id', 'numero', 'cliente', 'fecha')
     list_filter = ('fecha', 'cliente')
     search_fields = ('numero', 'cliente__nombre', 'cliente__rut', 'observaciones')
@@ -182,7 +197,18 @@ class DetalleVentaAdmin(admin.ModelAdmin):
 
 
 @admin.register(Movimiento)
-class MovimientoAdmin(admin.ModelAdmin):
+class MovimientoAdmin(AdminConFechasCompatibles):
+    def has_change_permission(self, request, obj=None):
+        return super().has_change_permission(request, obj) and not (obj and obj.stock_aplicado)
+
+    def has_delete_permission(self, request, obj=None):
+        return super().has_delete_permission(request, obj) and not (obj and obj.stock_aplicado)
+
+    def delete_queryset(self, request, queryset):
+        if queryset.filter(stock_aplicado=True).exists():
+            raise PermissionDenied('Los movimientos aplicados al stock conservan la trazabilidad y no se eliminan.')
+        return super().delete_queryset(request, queryset)
+
     list_display = ('producto', 'tipo', 'cantidad', 'fecha', 'motivo')
     list_filter = ('tipo', 'fecha')
     search_fields = (

@@ -1,0 +1,38 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Music Pro · Bodega{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'bodega/estilos.css' %}?v=lima-20261108">
+  <link rel="stylesheet" href="{% static 'bodega/interfaz.css' %}?v=lima-20261108">
+</head>
+<body>
+  <a class="salto" href="#contenido">Ir al contenido</a>
+  <header class="cabecera">
+    <div class="cabecera-interior">
+      <a class="marca" href="{% url 'bodega:inicio' %}"><span class="marca-icono" aria-hidden="true">MP</span><span>Music Pro<small>Gestión de bodega</small></span></a>
+      {% if user.is_authenticated %}
+      <nav aria-label="Navegación principal">
+        <a href="{% url 'bodega:inicio' %}"{% if request.resolver_match.url_name == 'inicio' %} aria-current="page"{% endif %}>Panel</a>
+        <a href="{% url 'bodega:productos' %}"{% if request.resolver_match.url_name == 'productos' %} aria-current="page"{% endif %}>Inventario</a>
+        {% if perms.bodega.view_categoria %}<a href="{% url 'bodega:catalogo_lista' 'categorias' %}">Categorías</a>{% endif %}
+        {% if perms.bodega.view_proveedor %}<a href="{% url 'bodega:catalogo_lista' 'proveedores' %}">Proveedores</a>{% endif %}
+        {% if perms.bodega.view_sucursal %}<a href="{% url 'bodega:catalogo_lista' 'sucursales' %}">Sucursales</a>{% endif %}
+        {% if perms.bodega.view_solicitud %}<a href="{% url 'bodega:solicitudes' %}">Solicitudes</a>{% endif %}
+        {% if perms.bodega.view_movimiento %}<a href="{% url 'bodega:movimientos' %}">Movimientos</a>{% endif %}
+        <a href="{% url 'bodega:panel_consultas' %}"{% if request.resolver_match.url_name == 'reportes' or request.resolver_match.url_name == 'panel_consultas' %} aria-current="page"{% endif %}>Reportes</a>
+        {% if perms.auth.view_user %}<a href="{% url 'bodega:usuarios' %}">Usuarios</a>{% endif %}
+      </nav>
+      <div class="sesion"><span>{{ user.get_username }}</span><form method="post" action="{% url 'bodega:logout' %}">{% csrf_token %}<button class="boton boton-cabecera" type="submit">Cerrar sesión</button></form></div>
+      {% endif %}
+    </div>
+  </header>
+  <main id="contenido" class="contenedor">
+    {% if messages %}<div class="mensajes" aria-live="polite">{% for message in messages %}<div class="mensaje {{ message.tags }}" role="status">{{ message }}</div>{% endfor %}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="pie"><span>Music Pro</span> · Gestión de bodega</footer>
+</body>
+</html>

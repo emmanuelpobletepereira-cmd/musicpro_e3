@@ -1,0 +1,99 @@
+/* Estilos de la interfaz de gestión de bodega. */
+:root{
+  --fondo:#f6f8f1;
+  --tinta:#24311c;
+  --secundario:#5c6950;
+  --bosque:#29420f;
+  --lima:#c5f74a;
+  --lima-intenso:#b5e536;
+  --verde:#3f6212;
+  --verde-oscuro:#29420f;
+  --linea:#dce4cf;
+  --radio:16px
+}
+.cabecera{background:linear-gradient(135deg,#dafa9b,#bbec45)}
+.marca-icono{color:var(--lima);background:var(--bosque)}
+.cabecera nav a{color:var(--bosque)}
+.cabecera nav a:hover,.cabecera nav a[aria-current=page]{border-bottom-color:var(--bosque)}
+.cabecera-interior{gap:18px 30px}
+.tarjeta{box-shadow:0 10px 25px rgb(36 49 28 / 5%)}
+.boton{border-radius:9px}
+.boton.primario{box-shadow:0 3px 8px rgb(80 110 20 / 15%)}
+.boton-cabecera{border-color:#6a852e;color:var(--bosque)}
+.boton-cabecera:hover{color:#fff}
+.acceso{display:block;max-width:510px;margin:35px auto;min-height:0}
+.acceso-form{width:100%;padding:36px}
+.acceso-form h1{font-size:1.8rem}
+.error-campo{display:block;color:#ad3543;margin-top:5px}
+.panel-metricas,.consultas-metricas{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-bottom:28px
+}
+.panel-metrica,.consultas-metrica{
+  background:#fff;border:1px solid var(--linea);border-radius:16px;
+  padding:22px;box-shadow:0 5px 18px rgb(36 49 28 / 4%);min-width:0
+}
+.panel-metrica h2,.consultas-metrica h2{font-size:.9rem;color:var(--secundario);margin-bottom:10px}
+.panel-metrica strong,.panel-valor,.consultas-metrica strong{
+  display:block;font-size:1.9rem;line-height:1.2;letter-spacing:-.035em;color:var(--bosque);overflow-wrap:anywhere
+}
+.panel-metrica p,.consultas-metrica p{color:var(--secundario);font-size:.85rem;margin:8px 0 0}
+.panel-acciones,.panel-accesos,.ficha-acciones{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.panel-metrica{display:flex;align-items:center;gap:16px}
+.panel-metrica .panel-metrica-valor{font-size:1.9rem;font-weight:750;color:var(--bosque);margin:0;line-height:1.2}
+.panel-metrica .panel-metrica-ayuda{font-size:.78rem}
+.panel-metrica-icono{display:grid;place-items:center;width:45px;height:45px;flex-shrink:0;background:#edf8d2;color:var(--verde);border-radius:50%;font-size:1.5rem}
+.panel-seccion-cabecera{display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(135deg,#dafa9b,#bbec45);color:var(--tinta);padding:20px;border-radius:12px;margin-bottom:20px}
+.panel-seccion-cabecera h2{margin-bottom:5px}
+.panel-seccion-cabecera p{font-size:.85rem;margin-bottom:0;color:var(--bosque)}
+.panel-contador{background:#fff;color:var(--bosque);border-radius:99px;padding:7px 12px;font-size:.8rem;white-space:nowrap}
+.panel-seccion-pie,.ficha-navegacion{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-top:18px}
+.ficha-navegacion{margin:0 0 24px}
+.panel-herramientas,.ficha-relacionados{margin-top:26px}
+.ficha-encabezado{display:block!important}
+.ficha-encabezado h1{margin-top:20px}
+.ficha-identificador{font-size:.8rem;color:var(--secundario)}
+.ficha-encabezado>.estado{float:right}
+.estado-pendiente{color:#7a4b00;background:#fff3cd}
+.estado-aprobada{color:#3f6212;background:#edf8d2}
+.estado-rechazada{color:#9c2332;background:#fce8eb}
+.estado-despachada{color:#31551d;background:#e8f4e2}
+.panel-seccion,.ficha-seccion{margin-top:26px}
+.panel-encabezado,.ficha-encabezado{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px
+}
+.panel-encabezado h2,.ficha-encabezado h2{margin-bottom:0}
+.ficha-datos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin:0}
+.ficha-datos dt{font-size:.82rem;color:var(--secundario);margin-bottom:4px}
+.ficha-datos dd{margin:0;font-weight:650;overflow-wrap:anywhere}
+.ficha-metricas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:22px 0}
+.ficha-dato-destacado{background:#f0f8dd;border-radius:12px;padding:18px}
+.ficha-dato-destacado strong{display:block;font-size:1.7rem;color:var(--bosque)}
+.consultas-grupo{margin:34px 0}
+.consultas-grupo>h2{font-size:1.3rem;margin-bottom:17px}
+.consultas-tarjetas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.consultas-tarjeta{display:flex;flex-direction:column;min-width:0}
+.consultas-tarjeta h3{font-size:1.05rem;line-height:1.45;margin:8px 0 12px}
+.consultas-tarjeta .consultas-filtros{margin-top:auto}
+.consultas-filtros{display:grid;gap:12px}
+.consultas-filtros .campo{margin:0}
+.consultas-filtros .boton{justify-self:start}
+.consultas-condiciones{margin:0 0 20px;color:var(--secundario)}
+.consultas-criterios{display:flex;flex-wrap:wrap;gap:12px 26px;margin:0 0 20px}
+.consultas-criterios dt{font-size:.82rem;color:var(--secundario)}
+.consultas-criterios dd{margin:3px 0 0;font-weight:650}
+.consultas-resumen{background:#f0f8dd;padding:18px 22px;border-radius:12px;margin-bottom:20px}
+.consultas-numero{
+  color:var(--verde);font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700
+}
+.nombre-producto a{color:inherit;text-decoration:none}
+.nombre-producto a:hover{text-decoration:underline}
+@media(max-width:1000px){
+  .panel-metricas,.consultas-metricas{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ficha-datos{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:680px){
+  .panel-metricas,.consultas-metricas,.consultas-tarjetas,.ficha-datos,.ficha-metricas{grid-template-columns:1fr}
+  .panel-metrica,.consultas-metrica{padding:18px}
+  .acceso{margin:15px auto}
+  .acceso-form{padding:24px}
+}

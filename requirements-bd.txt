@@ -1,0 +1,3 @@
+-r requirements.txt
+# Conector utilizado por la conexión de WampServer.
+mysqlclient==2.3.0

@@ -1,0 +1,10 @@
+{% extends 'bodega/base.html' %}
+{% block title %}Usuarios · Music Pro{% endblock %}
+{% block content %}
+<div class="titulo-pagina"><div><p class="sobrelinea">Administración de acceso</p><h1>Usuarios</h1><p class="texto-secundario">Cuentas, roles y acceso a la bodega.</p></div>{% if perms.auth.add_user %}<a class="boton primario" href="{% url 'bodega:usuario_crear' %}">Crear usuario</a>{% endif %}</div>
+<section class="tarjeta">
+<form method="get" class="filtros"><div class="campo"><label for="q">Buscar usuario</label><input id="q" name="q" value="{{ q }}" maxlength="150" placeholder="Usuario, nombre o correo"></div><button type="submit" class="boton secundario">Buscar</button></form>
+<div class="tabla-contenedor"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Acceso</th><th>Acciones</th></tr></thead><tbody>{% for cuenta in pagina %}<tr><td>{{ cuenta.username }}</td><td>{{ cuenta.get_full_name|default:'Sin nombre' }}</td><td>{{ cuenta.email|default:'Sin correo' }}</td><td>{% for grupo in cuenta.groups.all %}{{ grupo.name }}{% if not forloop.last %}, {% endif %}{% empty %}Sin rol{% endfor %}</td><td>{% if cuenta.is_active %}Activo{% else %}Desactivado{% endif %}</td><td>{% if cuenta.is_staff or cuenta.is_superuser %}<span class="texto-secundario">Administración técnica</span>{% elif perms.auth.change_user %}<a href="{% url 'bodega:usuario_editar' cuenta.pk %}">Editar</a>{% if cuenta.pk != request.user.pk and cuenta.is_active %} · <a class="enlace-peligro" href="{% url 'bodega:usuario_desactivar' cuenta.pk %}">Desactivar</a>{% endif %}{% endif %}</td></tr>{% empty %}<tr><td colspan="6" class="vacio">No hay usuarios para mostrar.</td></tr>{% endfor %}</tbody></table></div>
+<nav class="paginacion" aria-label="Páginas de usuarios"><span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span><div>{% if pagina.has_previous %}<a href="{% querystring page=pagina.previous_page_number %}">Anterior</a>{% endif %}{% if pagina.has_next %}<a href="{% querystring page=pagina.next_page_number %}">Siguiente</a>{% endif %}</div></nav>
+</section>
+{% endblock %}

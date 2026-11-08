@@ -1,0 +1,13 @@
+{% extends 'bodega/base.html' %}
+{% block title %}{{ titulo }} · Music Pro{% endblock %}
+{% block content %}
+<div class="titulo-pagina"><div><p class="sobrelinea">Administración de bodega</p><h1>{{ titulo }}</h1></div>{% if puede_crear %}<a class="boton primario" href="{% url 'bodega:catalogo_crear' tipo %}">Nuevo registro</a>{% endif %}</div>
+<section class="tarjeta">
+  <form method="get" class="filtros"><div class="campo"><label for="q">Buscar por nombre</label><input id="q" name="q" value="{{ q }}" maxlength="120"></div><button class="boton primario">Buscar</button><a href="{{ request.path }}">Limpiar</a></form>
+  <p>{{ pagina.paginator.count }} registro{{ pagina.paginator.count|pluralize:'s' }}</p>
+  <div class="tabla-contenedor"><table><thead><tr>{% for campo in campos %}<th>{{ campo.1 }}</th>{% endfor %}<th>Acciones</th></tr></thead><tbody>
+  {% for registro in registros %}<tr>{% for valor in registro.valores %}<td>{{ valor|default:'—' }}</td>{% endfor %}<td><div class="acciones-fila">{% if puede_editar %}<a href="{% url 'bodega:catalogo_editar' tipo registro.objeto.pk %}">Editar</a>{% endif %}{% if puede_eliminar %}<a class="enlace-peligro" href="{% url 'bodega:catalogo_eliminar' tipo registro.objeto.pk %}">Eliminar</a>{% endif %}</div></td></tr>{% empty %}<tr><td colspan="8" class="vacio">No hay registros para mostrar.</td></tr>{% endfor %}
+  </tbody></table></div>
+  <nav class="paginacion" aria-label="Páginas"><span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span><div>{% if pagina.has_previous %}<a class="boton secundario" href="{% querystring page=pagina.previous_page_number %}">Anterior</a>{% endif %}{% if pagina.has_next %}<a class="boton secundario" href="{% querystring page=pagina.next_page_number %}">Siguiente</a>{% endif %}</div></nav>
+</section>
+{% endblock %}

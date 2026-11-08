@@ -1,0 +1,36 @@
+{% extends 'bodega/base.html' %}
+{% block title %}Reportes de bodega · Music Pro{% endblock %}
+{% block content %}
+<div class="titulo-pagina">
+  <div><p class="sobrelinea">Bodega / Reportes</p><h1>Reportes de bodega</h1><p class="texto-secundario">Consulta el inventario, los proveedores y las solicitudes de sucursales.</p></div>
+  <a class="boton secundario" href="{% url 'bodega:productos' %}">Ver inventario</a>
+</div>
+<section class="consultas-metricas" aria-label="Resumen de la bodega">
+  <div class="consultas-metrica"><h2>Productos registrados</h2><strong>{{ metricas.total_productos }}</strong><p>Conteo de productos</p></div>
+  <div class="consultas-metrica"><h2>Stock bajo el mínimo</h2><strong>{{ metricas.stock_critico }}</strong><p>Stock estrictamente menor al mínimo</p></div>
+  <div class="consultas-metrica"><h2>Unidades en bodega</h2><strong>{{ metricas.total_unidades }}</strong><p>Existencias de todos los productos</p></div>
+  <div class="consultas-metrica"><h2>Solicitudes pendientes</h2>{% if puede_ver_solicitudes %}<strong>{{ metricas.solicitudes_pendientes }}</strong><p>Pendientes de atención</p>{% else %}<strong>—</strong><p>Requiere permiso de consulta de solicitudes</p>{% endif %}</div>
+</section>
+<nav class="panel-acciones" aria-label="Secciones de reportes">{% for grupo in grupos %}<a class="boton secundario" href="#nivel-{{ grupo.nivel|slugify }}">{{ grupo.titulo }} · {{ grupo.tarjetas|length }}</a>{% endfor %}</nav>
+<p class="nota-pie">Selecciona un reporte y completa sus filtros para consultar los resultados.</p>
+{% for grupo in grupos %}
+<section class="consultas-grupo" id="nivel-{{ grupo.nivel|slugify }}" aria-labelledby="titulo-{{ grupo.nivel|slugify }}">
+  <h2 id="titulo-{{ grupo.nivel|slugify }}">{{ grupo.titulo }} <small class="texto-secundario">· {{ grupo.tarjetas|length }} reportes</small></h2>
+  <div class="consultas-tarjetas">
+    {% for tarjeta in grupo.tarjetas %}
+    <article class="tarjeta consultas-tarjeta" id="consulta-{{ tarjeta.numero }}" data-reporte="{{ tarjeta.numero }}">
+      <p class="consultas-numero">Reporte {{ tarjeta.numero|stringformat:'02d' }} · {{ grupo.titulo }}</p>
+      <h3>{{ tarjeta.pregunta }}</h3>
+      {% if tarjeta.autorizada %}
+      <form method="get" class="formulario consultas-filtros" action="{% url 'bodega:reportes' %}">
+        <input type="hidden" name="n" value="{{ tarjeta.numero }}">
+        {% include 'bodega/_reporte_filtros.html' with campos=tarjeta.campos %}
+        <button class="boton primario" type="submit">{% if tarjeta.campos %}Consultar{% else %}Ver resultados{% endif %} <span aria-hidden="true">→</span></button>
+      </form>
+      {% else %}<p class="aviso">Tu cuenta necesita permisos adicionales para consultar las entidades de este reporte.</p>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+{% endblock %}

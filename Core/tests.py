@@ -13,7 +13,7 @@ class EvaluacionDosTests(TestCase):
 
     def test_crud_producto_en_admin(self):
         datos = dict(codigo='DEF-01', nombre='Amplificador', categoria=self.categoria.pk,
-                     ubicacion='A1', cantidad=10, stock_minimo=5)
+                     ubicacion='A1', cantidad=10, stock_minimo=5, precio='24990.00', estado='ACTIVO')
         respuesta = self.client.post(reverse('admin:bodega_producto_add'), datos)
         self.assertEqual(respuesta.status_code, 302)
         producto = Producto.objects.get(codigo='DEF-01')
@@ -64,13 +64,7 @@ class EvaluacionDosTests(TestCase):
         respuesta = self.client.get(url, {'tipo__exact': 'INGRESO'})
         self.assertEqual([m.pk for m in respuesta.context['cl'].result_list], [ingreso.pk])
 
-    def test_solo_se_publican_las_rutas_del_admin(self):
-        from pathlib import Path
-        from django.conf import settings
-        from django.urls import get_resolver
-
-        rutas = get_resolver().url_patterns
-        self.assertEqual([str(ruta.pattern) for ruta in rutas], ['admin/'])
-        self.assertFalse((Path(settings.BASE_DIR) / 'Core' / 'views.py').exists())
-        for ruta in ('/', '/movimientos/', '/productos/nuevo/'):
-            self.assertEqual(self.client.get(ruta).status_code, 404)
+    def test_admin_se_conserva_junto_al_crud_web(self):
+        self.assertEqual(self.client.get(reverse('admin:index')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('bodega:productos')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('bodega:inicio')).status_code, 200)

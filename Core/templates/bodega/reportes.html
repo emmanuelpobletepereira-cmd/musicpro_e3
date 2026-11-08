@@ -1,0 +1,27 @@
+{% extends 'bodega/base.html' %}
+{% block title %}{% if reporte %}{{ reporte.titulo }}{% else %}Reporte de bodega{% endif %} · Music Pro{% endblock %}
+{% block content %}
+<a class="volver" href="{% url 'bodega:panel_consultas' %}">← Volver a reportes</a>
+<div class="titulo-pagina"><div><p class="sobrelinea">Reporte de bodega{% if numero %} · Reporte {{ numero|stringformat:'02d' }}{% endif %}</p><h1>{{ pregunta }}</h1><p class="texto-secundario">Consulta los resultados con los filtros seleccionados.</p></div></div>
+<section class="tarjeta consultas-filtros" aria-label="Condiciones de la consulta">
+  {% if errores %}<div class="mensaje error" role="alert"><strong>Corrige los filtros para ejecutar la consulta.</strong><ul>{% for campo, mensaje in errores %}<li>{{ campo }}: {{ mensaje }}</li>{% endfor %}</ul></div>{% endif %}
+  {% if numero %}<form method="get" class="formulario" action="{% url 'bodega:reportes' %}">
+    <input type="hidden" name="n" value="{{ numero }}">
+    {% include 'bodega/_reporte_filtros.html' %}
+    <div class="acciones-formulario"><button class="boton primario" type="submit">{% if campos %}Consultar{% else %}Actualizar consulta{% endif %}</button><a class="boton secundario" href="{% url 'bodega:panel_consultas' %}">Elegir otro reporte</a></div>
+  </form>{% endif %}
+</section>
+{% if reporte %}
+<section class="tarjeta bloque-query" aria-labelledby="titulo-resultados">
+  <p class="paso">Respuesta · Reporte {{ reporte.numero|stringformat:'02d' }}</p>
+  <h2 id="titulo-resultados">{{ reporte.titulo }}</h2>
+  {% if criterios %}<dl class="consultas-criterios">{% for etiqueta, valor in criterios %}<div><dt>{{ etiqueta }}</dt><dd>{{ valor }}</dd></div>{% endfor %}</dl>{% endif %}
+  {% if nota_operativa %}<p>{{ nota_operativa }}</p>{% endif %}
+  {% if metrica_resultado %}<div class="consultas-metrica"><span class="texto-secundario">{{ metrica_resultado.etiqueta }}</span><strong>{{ metrica_resultado.valor|floatformat:2 }}</strong></div>{% endif %}
+  <div class="resumen-lista"><strong>{{ pagina.paginator.count }} resultado{{ pagina.paginator.count|pluralize:'s' }}</strong><span>Hasta 25 resultados por página.</span></div>
+  <div class="tabla-contenedor"><table><caption class="solo-lectores">{{ reporte.titulo }}</caption><thead><tr>{% for encabezado in encabezados %}<th scope="col">{{ encabezado }}</th>{% endfor %}</tr></thead><tbody>{% for fila in filas %}<tr>{% for celda in fila %}<td>{{ celda|default_if_none:'—' }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ encabezados|length }}" class="vacio">No hay registros que cumplan las condiciones del reporte.</td></tr>{% endfor %}</tbody></table></div>
+  <nav class="paginacion" aria-label="Páginas del reporte"><span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span><div>{% if pagina.has_previous %}<a class="boton secundario" href="{% querystring page=pagina.previous_page_number %}">← Anterior</a>{% endif %}{% if pagina.has_next %}<a class="boton secundario" href="{% querystring page=pagina.next_page_number %}">Siguiente →</a>{% endif %}</div></nav>
+</section>
+
+{% endif %}
+{% endblock %}

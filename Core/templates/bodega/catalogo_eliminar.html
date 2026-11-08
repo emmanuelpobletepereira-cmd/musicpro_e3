@@ -1,0 +1,3 @@
+{% extends 'bodega/base.html' %}
+{% block title %}Eliminar registro · Music Pro{% endblock %}
+{% block content %}<section class="tarjeta confirmacion"><p class="sobrelinea">{{ titulo }}</p><h1>Confirmar eliminación</h1><p>Vas a eliminar <strong>{{ objeto }}</strong>. Los registros con relaciones quedan protegidos.</p><form method="post">{% csrf_token %}<div class="acciones-formulario"><button class="boton peligro">Eliminar registro</button><a class="boton secundario" href="{% url 'bodega:catalogo_lista' tipo %}">Cancelar</a></div></form></section>{% endblock %}

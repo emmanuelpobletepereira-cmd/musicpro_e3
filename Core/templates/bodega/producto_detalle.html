@@ -1,0 +1,36 @@
+{% extends 'bodega/base.html' %}
+{% block title %}{{ producto.nombre }} · Music Pro{% endblock %}
+{% block content %}
+<div class="ficha-navegacion"><div class="panel-accesos"><a class="boton secundario" href="{% url 'bodega:productos' %}">← Volver al catálogo</a><a class="boton secundario" href="{% url 'bodega:inicio' %}">Panel principal</a></div><div class="panel-accesos">{% if perms.bodega.change_producto %}<a class="boton primario" href="{% url 'bodega:producto_editar' producto.pk %}">Editar producto</a>{% endif %}{% if perms.bodega.delete_producto %}<a class="boton peligro" href="{% url 'bodega:producto_eliminar' producto.pk %}">Eliminar producto</a>{% endif %}</div></div>
+
+<section class="tarjeta ficha-producto" aria-labelledby="nombre-producto">
+  <div class="ficha-encabezado"><span class="ficha-identificador">Ficha de producto #{{ producto.pk }}</span><span class="estado {% if producto.estado == 'ACTIVO' %}activo{% else %}inactivo{% endif %}">{{ producto.get_estado_display }}</span><h1 id="nombre-producto">{{ producto.nombre }}</h1><p class="ficha-codigo">Código / SKU: <strong>{{ producto.codigo }}</strong></p></div>
+  <dl class="ficha-datos">
+    <div class="ficha-dato"><dt>Categoría</dt><dd>{{ producto.categoria.nombre }}</dd></div>
+    <div class="ficha-dato"><dt>Marca</dt><dd>{{ producto.marca.nombre|default:'Sin marca registrada' }}</dd></div>
+    <div class="ficha-dato"><dt>Proveedor</dt><dd>{{ producto.proveedor.nombre|default:'Sin proveedor asignado' }}</dd></div>
+    <div class="ficha-dato"><dt>Stock actual</dt><dd>{{ producto.cantidad }} unidades</dd></div>
+    <div class="ficha-dato"><dt>Stock mínimo</dt><dd>{{ producto.stock_minimo }} unidades</dd></div>
+    <div class="ficha-dato"><dt>Ubicación en bodega</dt><dd>{{ producto.ubicacion }}</dd></div>
+    <div class="ficha-dato"><dt>Situación del stock</dt><dd>{% if producto.cantidad < producto.stock_minimo %}<span class="stock-critico">Por debajo del mínimo</span>{% else %}Cumple el mínimo{% endif %}</dd></div>
+  </dl>
+</section>
+
+{% if puede_ver_movimientos %}
+<section class="tarjeta ficha-relacionados" aria-labelledby="titulo-movimientos"><div class="panel-seccion-cabecera"><div><h2 id="titulo-movimientos">Movimientos del producto</h2><p>Hasta diez ingresos y salidas recientes asociados a {{ producto.codigo }}.</p></div><span class="panel-contador">{{ movimientos|length }} registros</span></div>
+  <div class="tabla-contenedor"><table><caption class="solo-lectores">Movimientos recientes de {{ producto.nombre }}</caption><thead><tr><th scope="col">Fecha</th><th scope="col">Tipo</th><th scope="col">Cantidad</th><th scope="col">Motivo</th><th scope="col">Aplicación</th>{% if puede_ver_solicitudes_relacionadas %}<th scope="col">Solicitud</th>{% endif %}</tr></thead><tbody>
+  {% for movimiento in movimientos %}<tr><td>{{ movimiento.fecha|date:'d/m/Y H:i' }}</td><td>{{ movimiento.get_tipo_display }}</td><td>{{ movimiento.cantidad }}</td><td>{{ movimiento.motivo }}</td><td>{% if movimiento.stock_aplicado %}Aplicado al stock{% else %}Registro anterior{% endif %}</td>{% if puede_ver_solicitudes_relacionadas %}<td>{% if movimiento.solicitud_id %}<a href="{% url 'bodega:solicitud_detalle' movimiento.solicitud_id %}">#{{ movimiento.solicitud_id }}</a>{% else %}—{% endif %}</td>{% endif %}</tr>{% empty %}<tr><td colspan="6" class="vacio">Este producto todavía no tiene movimientos registrados.</td></tr>{% endfor %}
+  </tbody></table></div><div class="panel-seccion-pie"><p class="texto-secundario">Los movimientos aplicados conservan la trazabilidad de los cambios de stock.</p><a class="boton secundario" href="{% url 'bodega:movimientos' %}">Ver movimientos de la bodega</a></div>
+</section>
+{% endif %}
+
+{% if puede_ver_solicitudes_relacionadas %}
+<section class="tarjeta ficha-relacionados" aria-labelledby="titulo-solicitudes"><div class="panel-seccion-cabecera"><div><h2 id="titulo-solicitudes">Solicitudes relacionadas</h2><p>Hasta diez solicitudes recientes que incluyen este producto.</p></div><span class="panel-contador">{{ solicitudes_relacionadas|length }} registros</span></div>
+  <div class="tabla-contenedor"><table><caption class="solo-lectores">Solicitudes de sucursales que incluyen {{ producto.nombre }}</caption><thead><tr><th scope="col">Solicitud / Fecha</th><th scope="col">Sucursal</th><th scope="col">Estado</th><th scope="col">Solicitada</th><th scope="col">Aprobada</th><th scope="col">Despachada</th></tr></thead><tbody>
+  {% for detalle in solicitudes_relacionadas %}<tr><td><a href="{% url 'bodega:solicitud_detalle' detalle.solicitud_id %}">#{{ detalle.solicitud_id }}</a><small class="dato-secundario">{{ detalle.solicitud.fecha|date:'d/m/Y H:i' }}</small></td><td>{{ detalle.solicitud.sucursal.nombre }}</td><td><span class="estado estado-{{ detalle.solicitud.estado|lower }}">{{ detalle.solicitud.get_estado_display }}</span></td><td>{{ detalle.cantidad_solicitada }}</td><td>{{ detalle.cantidad_aprobada }}</td><td>{{ detalle.cantidad_despachada }}</td></tr>{% empty %}<tr><td colspan="6" class="vacio">Este producto todavía no está incluido en solicitudes.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+
+
+{% endblock %}

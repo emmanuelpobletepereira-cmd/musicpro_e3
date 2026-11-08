@@ -1,0 +1,36 @@
+{% extends 'bodega/base.html' %}
+{% block title %}Panel de bodega · Music Pro{% endblock %}
+{% block content %}
+<div class="titulo-pagina panel-encabezado">
+  <div><p class="sobrelinea">Sistema administrativo</p><h1>Panel de bodega</h1><p class="texto-secundario">Gestiona productos, solicitudes de sucursales y movimientos de stock.</p></div>
+  <div class="panel-accesos">
+    <a class="boton secundario" href="{% url 'bodega:productos' %}">Catálogo de productos</a>
+    {% if perms.bodega.add_producto %}<a class="boton primario" href="{% url 'bodega:producto_crear' %}">Nuevo producto</a>{% endif %}
+    {% if perms.bodega.view_solicitud and perms.bodega.add_solicitud %}<a class="boton primario" href="{% url 'bodega:solicitud_crear' %}">Nueva solicitud</a>{% endif %}
+  </div>
+</div>
+
+<section class="panel-metricas" aria-label="Resumen de la bodega">
+  <article class="tarjeta panel-metrica"><span class="panel-metrica-icono" aria-hidden="true">▦</span><div><h2 class="panel-metrica-nombre">Productos registrados</h2><p class="panel-metrica-valor">{{ metricas.total_productos }}</p><p class="panel-metrica-ayuda">Referencias del catálogo</p></div></article>
+  <article class="tarjeta panel-metrica"><span class="panel-metrica-icono" aria-hidden="true">▣</span><div><h2 class="panel-metrica-nombre">Unidades en bodega</h2><p class="panel-metrica-valor">{{ metricas.total_unidades }}</p><p class="panel-metrica-ayuda">Suma de las existencias actuales</p></div></article>
+  <article class="tarjeta panel-metrica"><span class="panel-metrica-icono" aria-hidden="true">⌂</span><div><h2 class="panel-metrica-nombre">Sucursales activas</h2>{% if puede_ver_sucursales %}<p class="panel-metrica-valor">{{ metricas.sucursales_activas }}</p><p class="panel-metrica-ayuda"><a href="{% url 'bodega:catalogo_lista' 'sucursales' %}">Ver sucursales</a></p>{% else %}<p class="panel-metrica-ayuda">Sin acceso a esta consulta</p>{% endif %}</div></article>
+  <article class="tarjeta panel-metrica"><span class="panel-metrica-icono" aria-hidden="true">⇄</span><div><h2 class="panel-metrica-nombre">Solicitudes pendientes</h2>{% if puede_ver_solicitudes %}<p class="panel-metrica-valor">{{ metricas.solicitudes_pendientes }}</p><p class="panel-metrica-ayuda"><a href="{% url 'bodega:solicitudes' %}?estado=PENDIENTE">Ver pendientes de revisión</a></p>{% else %}<p class="panel-metrica-ayuda">Sin acceso a esta consulta</p>{% endif %}</div></article>
+</section>
+
+{% if puede_ver_ultimas_solicitudes %}
+<section class="tarjeta panel-actividad" aria-labelledby="titulo-ultimas-solicitudes">
+  <div class="panel-seccion-cabecera"><div><h2 id="titulo-ultimas-solicitudes">Últimas solicitudes</h2><p>Pedidos registrados por las sucursales y su estado actual.</p></div><span class="panel-contador">{{ ultimas_solicitudes|length }} registro{{ ultimas_solicitudes|length|pluralize:"s" }}</span></div>
+  <div class="tabla-contenedor"><table><caption class="solo-lectores">Las diez solicitudes más recientes de la bodega</caption><thead><tr><th scope="col">Solicitud</th><th scope="col">Sucursal</th><th scope="col">Fecha</th><th scope="col">Estado</th><th scope="col">Acción</th></tr></thead><tbody>
+    {% for solicitud in ultimas_solicitudes %}<tr><td><strong>#{{ solicitud.pk }}</strong></td><td>{{ solicitud.sucursal.nombre }}</td><td>{{ solicitud.fecha|date:'d/m/Y H:i' }}</td><td><span class="estado estado-{{ solicitud.estado|lower }}">{{ solicitud.get_estado_display }}</span></td><td><a href="{% url 'bodega:solicitud_detalle' solicitud.pk %}">Ver solicitud</a></td></tr>{% empty %}<tr><td colspan="5" class="vacio"><strong>Aún no hay solicitudes registradas.</strong><p>Cuando una sucursal solicite productos, podrás seguir aquí su aprobación y despacho.</p></td></tr>{% endfor %}
+  </tbody></table></div>
+  <div class="panel-seccion-pie"><span class="texto-secundario">Se muestran hasta diez solicitudes, de la más reciente a la más antigua.</span><a class="boton secundario" href="{% url 'bodega:solicitudes' %}">Ver todas las solicitudes</a></div>
+</section>
+{% endif %}
+
+<section class="tarjeta panel-herramientas" aria-labelledby="titulo-herramientas"><h2 id="titulo-herramientas">Accesos de gestión</h2><div class="panel-accesos">
+  <a class="boton secundario" href="{% url 'bodega:productos' %}">Consultar inventario</a>
+  {% if perms.bodega.view_movimiento %}<a class="boton secundario" href="{% url 'bodega:movimientos' %}">Movimientos de stock</a>{% endif %}
+  {% if perms.auth.view_user %}<a class="boton secundario" href="{% url 'bodega:usuarios' %}">Usuarios</a>{% endif %}
+  <a class="boton secundario" href="{% url 'bodega:panel_consultas' %}">Reportes de bodega</a>
+</div></section>
+{% endblock %}

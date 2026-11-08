@@ -1,0 +1,6 @@
+{% extends 'bodega/base.html' %}
+{% block title %}Eliminar producto · Music Pro{% endblock %}
+{% block content %}
+<a class="volver" href="{% url 'bodega:productos' %}">← Volver al inventario</a>
+<section class="tarjeta confirmacion" aria-labelledby="titulo-eliminar"><p class="sobrelinea">Confirmar operación</p><h1 id="titulo-eliminar">Eliminar producto</h1><p>Vas a eliminar <strong>{{ producto.codigo }} · {{ producto.nombre }}</strong> del inventario.</p><p class="texto-secundario">Esta operación no se puede deshacer. Los productos relacionados con movimientos, compras o ventas están protegidos.</p><form method="post" class="acciones-formulario">{% csrf_token %}<button class="boton peligro" type="submit">Sí, eliminar producto</button><a class="boton secundario" href="{% url 'bodega:productos' %}">Cancelar</a></form></section>
+{% endblock %}

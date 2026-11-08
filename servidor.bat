@@ -9,5 +9,6 @@ if not exist ".venv\Scripts\python.exe" (
     exit /b 1
 )
 
-".venv\Scripts\python.exe" manage.py runserver %*
+echo Iniciando servidor...
+".venv\Scripts\python.exe" wamp.py servidor %*
 if errorlevel 1 pause

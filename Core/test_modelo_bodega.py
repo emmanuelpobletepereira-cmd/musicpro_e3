@@ -11,7 +11,7 @@ from django.urls import reverse
 
 from .models import (
     Categoria, Cliente, Compra, DetalleCompra, DetalleVenta, Marca,
-    Movimiento, Producto, Proveedor, Venta,
+    Movimiento, Producto, Proveedor, Venta, Sucursal, Solicitud, DetalleSolicitud,
 )
 
 
@@ -40,18 +40,19 @@ class DiezTablasBodegaTests(TestCase):
             precio_unitario=Decimal('24990.00'),
         )
 
-    def test_existen_diez_tablas_propias_y_todos_sus_admins(self):
+    def test_conserva_diez_tablas_e2_y_agrega_tres_de_solicitudes_e3(self):
         esperados = {
             Categoria, Marca, Producto, Proveedor, Cliente, Compra, DetalleCompra,
             Venta, DetalleVenta, Movimiento,
         }
         modelos = set(apps.get_app_config('bodega').get_models())
-        self.assertEqual(modelos, esperados)
+        self.assertEqual(modelos, esperados | {Sucursal, Solicitud, DetalleSolicitud})
         tablas = set(connection.introspection.table_names())
         for modelo in modelos:
             self.assertIn(modelo._meta.db_table, tablas)
-            self.assertIn(modelo, admin.site._registry)
-        self.assertEqual(len([t for t in tablas if t.startswith('bodega_')]), 10)
+            if modelo in esperados:
+                self.assertIn(modelo, admin.site._registry)
+        self.assertEqual(len([t for t in tablas if t.startswith('bodega_')]), 13)
 
     def test_documentos_calculan_importes_con_decimal(self):
         self.assertEqual(self.detalle_compra.subtotal, Decimal('199905.00'))
@@ -62,7 +63,9 @@ class DiezTablasBodegaTests(TestCase):
     def test_admin_muestra_listados_formularios_y_documentos_de_diez_modelos(self):
         usuario = get_user_model().objects.create_superuser('admin-diez-tablas', password=None)
         self.client.force_login(usuario)
-        for modelo in apps.get_app_config('bodega').get_models():
+        # Las pantallas nuevas de E3 no dependen de Django Admin.
+        for modelo in (Categoria, Marca, Proveedor, Cliente, Producto, Compra,
+                       DetalleCompra, Venta, DetalleVenta, Movimiento):
             prefijo = f'admin:bodega_{modelo._meta.model_name}'
             for accion in ('changelist', 'add'):
                 with self.subTest(modelo=modelo.__name__, accion=accion):

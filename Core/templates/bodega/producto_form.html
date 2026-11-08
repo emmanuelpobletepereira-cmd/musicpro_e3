@@ -1,0 +1,26 @@
+{% extends 'bodega/base.html' %}
+{% block title %}{{ titulo }} · Music Pro{% endblock %}
+{% block content %}
+<a class="volver" href="{% if producto %}{% url 'bodega:producto_detalle' producto.pk %}{% else %}{% url 'bodega:productos' %}{% endif %}">← Volver</a>
+<div class="titulo-pagina"><div><p class="sobrelinea">Gestión de productos</p><h1>{{ titulo }}</h1><p class="texto-secundario">Completa los datos del producto. La marca es opcional.</p></div></div>
+<section class="tarjeta tarjeta-formulario">
+  {% if errores %}<div class="mensaje error" role="alert"><strong>Revisa los datos antes de guardar.</strong><ul>{% for campo, lista in errores.items %}{% for error in lista %}<li>{{ campo }}: {{ error }}</li>{% endfor %}{% endfor %}</ul></div>{% endif %}
+  <form method="post" class="formulario">
+    {% csrf_token %}
+    {% if producto %}<input type="hidden" name="cantidad_original" value="{{ cantidad_original }}">{% endif %}
+    <div class="grilla-formulario">
+      <div class="campo"><label for="codigo">Código</label><input id="codigo" name="codigo" value="{{ datos.codigo }}" maxlength="40" required{% if errores.codigo %} aria-invalid="true"{% endif %}><small>Identificador único del producto.</small>{% include 'bodega/_errores_campo.html' with errores_campo=errores.codigo %}</div>
+      <div class="campo"><label for="nombre">Nombre</label><input id="nombre" name="nombre" value="{{ datos.nombre }}" maxlength="120" required{% if errores.nombre %} aria-invalid="true"{% endif %}>{% include 'bodega/_errores_campo.html' with errores_campo=errores.nombre %}</div>
+      <div class="campo"><label for="categoria">Categoría</label><select id="categoria" name="categoria" required{% if errores.categoria %} aria-invalid="true"{% endif %}><option value="">Selecciona una categoría</option>{% for categoria in categorias %}<option value="{{ categoria.pk }}"{% if datos.categoria|stringformat:'s' == categoria.pk|stringformat:'s' %} selected{% endif %}>{{ categoria.nombre }}</option>{% endfor %}</select>{% include 'bodega/_errores_campo.html' with errores_campo=errores.categoria %}</div>
+      <div class="campo"><label for="marca">Marca <span class="texto-secundario">(opcional)</span></label><select id="marca" name="marca"{% if errores.marca %} aria-invalid="true"{% endif %}><option value="">Sin marca</option>{% for marca in marcas %}<option value="{{ marca.pk }}"{% if datos.marca|stringformat:'s' == marca.pk|stringformat:'s' %} selected{% endif %}>{{ marca.nombre }}</option>{% endfor %}</select>{% include 'bodega/_errores_campo.html' with errores_campo=errores.marca %}</div>
+      <div class="campo"><label for="proveedor">Proveedor</label><select id="proveedor" name="proveedor" required{% if errores.proveedor %} aria-invalid="true"{% endif %}><option value="">Selecciona un proveedor</option>{% for proveedor in proveedores %}<option value="{{ proveedor.pk }}"{% if datos.proveedor|stringformat:'s' == proveedor.pk|stringformat:'s' %} selected{% endif %}>{{ proveedor.nombre }}{% if not proveedor.activo %} (inactivo){% endif %}</option>{% endfor %}</select>{% include 'bodega/_errores_campo.html' with errores_campo=errores.proveedor %}</div>
+      <div class="campo"><label for="ubicacion">Ubicación en bodega</label><input id="ubicacion" name="ubicacion" value="{{ datos.ubicacion }}" maxlength="100" required{% if errores.ubicacion %} aria-invalid="true"{% endif %}>{% include 'bodega/_errores_campo.html' with errores_campo=errores.ubicacion %}</div>
+      <div class="campo"><label for="cantidad">Stock actual</label><input id="cantidad" type="number" name="cantidad" value="{{ datos.cantidad }}" min="0" step="1" required{% if errores.cantidad %} aria-invalid="true"{% endif %}>{% include 'bodega/_errores_campo.html' with errores_campo=errores.cantidad %}</div>
+      <div class="campo"><label for="stock_minimo">Stock mínimo</label><input id="stock_minimo" type="number" name="stock_minimo" value="{{ datos.stock_minimo }}" min="0" step="1" required{% if errores.stock_minimo %} aria-invalid="true"{% endif %}>{% include 'bodega/_errores_campo.html' with errores_campo=errores.stock_minimo %}</div>
+      <div class="campo"><label for="estado">Estado</label><select id="estado" name="estado" required{% if errores.estado %} aria-invalid="true"{% endif %}>{% for valor, etiqueta in estados %}<option value="{{ valor }}"{% if datos.estado == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select>{% include 'bodega/_errores_campo.html' with errores_campo=errores.estado %}</div>
+    </div>
+    <p class="aviso">Los cambios de stock realizados aquí quedan registrados como movimientos. También puedes registrar ingresos y salidas desde Movimientos.</p>
+    <div class="acciones-formulario"><button class="boton primario" type="submit">Guardar producto</button><a class="boton secundario" href="{% if producto %}{% url 'bodega:producto_detalle' producto.pk %}{% else %}{% url 'bodega:productos' %}{% endif %}">Cancelar</a></div>
+  </form>
+</section>
+{% endblock %}

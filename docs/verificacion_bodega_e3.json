@@ -1,0 +1,42 @@
+{
+  "fecha_cliente": "2026-11-07",
+  "conexion": "instancia portátil anterior (registro histórico)",
+  "version_servidor": "8.4.13",
+  "modo_sql": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION",
+  "registros_originales_comparados": 456,
+  "valores_originales_conservados": true,
+  "conteos": {
+    "Categoria": 5,
+    "Marca": 3,
+    "Proveedor": 5,
+    "Cliente": 5,
+    "Producto": 225,
+    "Compra": 20,
+    "DetalleCompra": 20,
+    "Venta": 20,
+    "DetalleVenta": 20,
+    "Sucursal": 3,
+    "Solicitud": 4,
+    "DetalleSolicitud": 7,
+    "Movimiento": 147
+  },
+  "muestra_ficticia": "DEMO-E3",
+  "estados_solicitud": [
+    {
+      "estado": "APROBADA",
+      "total": 1
+    },
+    {
+      "estado": "DESPACHADA",
+      "total": 1
+    },
+    {
+      "estado": "PENDIENTE",
+      "total": 1
+    },
+    {
+      "estado": "RECHAZADA",
+      "total": 1
+    }
+  ]
+}

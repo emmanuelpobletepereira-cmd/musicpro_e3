@@ -1,0 +1,6 @@
+{% extends 'bodega/base.html' %}
+{% block title %}Desactivar usuario · Music Pro{% endblock %}
+{% block content %}
+<a class="volver" href="{% url 'bodega:usuarios' %}">← Volver a usuarios</a>
+<section class="tarjeta tarjeta-formulario"><h1>Desactivar usuario</h1><p>La cuenta <strong>{{ usuario_objetivo.username }}</strong> perderá el acceso. Sus registros se conservan para mantener la trazabilidad.</p><form method="post">{% csrf_token %}<div class="acciones-formulario"><button class="boton peligro" type="submit">Confirmar desactivación</button><a class="boton secundario" href="{% url 'bodega:usuarios' %}">Cancelar</a></div></form></section>
+{% endblock %}

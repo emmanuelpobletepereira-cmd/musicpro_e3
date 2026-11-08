@@ -27,7 +27,10 @@ class CargaCompletaFakerTests(TestCase):
         with warnings.catch_warnings():
             warnings.simplefilter('error', RuntimeWarning)
             salida = self.cargar()
-        modelos = tuple(apps.get_app_config('bodega').get_models())
+        # Este generador conserva el alcance de las diez tablas E2.
+        # La muestra E3 tiene su propio comando cargar_demo_bodega.
+        modelos = (Categoria, Cliente, Compra, DetalleCompra, DetalleVenta, Marca,
+                   Movimiento, Producto, Proveedor, Venta)
         self.assertEqual(len(modelos), 10)
         for modelo in modelos:
             with self.subTest(modelo=modelo.__name__):
@@ -158,7 +161,7 @@ class CargaCompletaFakerTests(TestCase):
         salida = StringIO()
         call_command('verificar_bd', stdout=salida)
         texto = salida.getvalue()
-        self.assertIn('Tablas propias del negocio: 10 (presentes en la base: 10)', texto)
+        self.assertIn('Tablas propias del negocio: 13 (presentes en la base: 13)', texto)
         self.assertIn('no cuentan como tablas propias del negocio', texto)
         for modelo in apps.get_app_config('bodega').get_models():
             self.assertIn(f'{modelo._meta.db_table}: 0 registros', texto)

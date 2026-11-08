@@ -1,0 +1,3 @@
+{% extends 'bodega/base.html' %}
+{% block title %}Acceso restringido · Music Pro{% endblock %}
+{% block content %}<section class="tarjeta confirmacion"><p class="sobrelinea">Acceso restringido · 403</p><h1>Tu cuenta no tiene permiso.</h1><p>Esta operación requiere una autorización diferente. Si necesitas acceso, comunícalo al administrador de la bodega.</p><a class="boton secundario" href="{% url 'bodega:productos' %}">Volver al inventario</a></section>{% endblock %}

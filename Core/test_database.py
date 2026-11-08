@@ -185,7 +185,7 @@ class VerificacionBaseDatosTests(TestCase):
         salida = StringIO()
         with CaptureQueriesContext(connection) as consultas:
             call_command('verificar_bd', stdout=salida)
-        self.assertIn(connection.settings_dict['ENGINE'], salida.getvalue())
+        self.assertIn('Conexión:', salida.getvalue())
         self.assertIn(Producto._meta.db_table, salida.getvalue())
         self.assertEqual(Producto.objects.count(), 1)
         self.assertFalse(any(

@@ -11,8 +11,13 @@ db.sqlite3
 staticfiles/
 tmp/
 backups/
+.mysql-local/
+.wamp-local/
 .vscode/
 .env
 .env.*
 !.env.example
 *.log
+/cls
+/h -u origin main
+/servidor_portatil.py

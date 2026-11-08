@@ -1,0 +1,33 @@
+{% extends 'bodega/base.html' %}
+{% block title %}{% if solicitud %}Editar{% else %}Nueva{% endif %} solicitud · Music Pro{% endblock %}
+{% block content %}
+<a class="volver" href="{% url 'bodega:solicitudes' %}">← Volver a solicitudes</a>
+<div class="titulo-pagina"><div><p class="sobrelinea">Distribución a sucursales</p><h1>{% if solicitud %}Editar solicitud #{{ solicitud.pk }}{% else %}Nueva solicitud{% endif %}</h1><p class="texto-secundario">Incluye productos y cantidades. La solicitud se guardará pendiente de aprobación.</p></div></div>
+<section class="tarjeta tarjeta-formulario">{% if error %}<div class="mensaje error" role="alert">{{ error }}</div>{% endif %}<form method="post" class="formulario">{% csrf_token %}
+<div class="campo"><label for="sucursal">Sucursal destinataria</label><select id="sucursal" name="sucursal" required><option value="">Selecciona una sucursal</option>{% for sucursal in sucursales %}<option value="{{ sucursal.pk }}"{% if datos.sucursal|stringformat:'s' == sucursal.pk|stringformat:'s' %} selected{% endif %}>{{ sucursal.codigo }} · {{ sucursal.nombre }}</option>{% endfor %}</select></div>
+<div class="campo"><label for="observaciones">Observaciones</label><textarea id="observaciones" name="observaciones" rows="3" style="width:100%;font:inherit;padding:10px">{{ datos.observaciones }}</textarea></div>
+<h2>Productos solicitados</h2><p class="texto-secundario">No repitas un producto. Se aceptan hasta 100 productos por solicitud.</p>
+<div id="lineas">{% for producto_id, cantidad in lineas %}<div class="grilla-formulario linea-solicitud" style="margin-bottom:14px"><div class="campo"><label for="producto-{{ forloop.counter }}">Producto {{ forloop.counter }}</label><select id="producto-{{ forloop.counter }}" name="producto" required><option value="">Selecciona un producto</option>{% for producto in productos %}<option value="{{ producto.pk }}"{% if producto_id|stringformat:'s' == producto.pk|stringformat:'s' %} selected{% endif %}>{{ producto.codigo }} · {{ producto.nombre }}</option>{% endfor %}</select></div><div class="campo"><label for="cantidad-{{ forloop.counter }}">Cantidad solicitada</label><input id="cantidad-{{ forloop.counter }}" name="cantidad" type="number" min="1" max="2147483647" step="1" value="{{ cantidad }}" required></div><button class="boton secundario quitar-linea" type="button">Quitar producto</button></div>{% endfor %}</div>
+<button class="boton secundario" type="button" id="agregar-linea">Añadir otro producto</button>
+<div class="acciones-formulario"><button class="boton primario" type="submit">Guardar solicitud</button><a class="boton secundario" href="{% url 'bodega:solicitudes' %}">Cancelar</a></div>
+</form></section>
+<script>
+const contenedor = document.getElementById('lineas');
+let numeroLinea = contenedor.children.length;
+document.getElementById('agregar-linea').addEventListener('click', function () {
+  if (contenedor.children.length >= 100) return;
+  const fila = contenedor.firstElementChild.cloneNode(true);
+  numeroLinea += 1;
+  fila.querySelectorAll('select, input').forEach(function (campo) {
+    const etiqueta = fila.querySelector('label[for="' + campo.id + '"]');
+    campo.id = campo.name + '-' + numeroLinea;
+    campo.value = '';
+    etiqueta.htmlFor = campo.id;
+  });
+  contenedor.appendChild(fila);
+});
+contenedor.addEventListener('click', function (evento) {
+  if (evento.target.classList.contains('quitar-linea') && contenedor.children.length > 1) evento.target.closest('.linea-solicitud').remove();
+});
+</script>
+{% endblock %}

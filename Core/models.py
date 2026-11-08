@@ -8,6 +8,7 @@ from django.utils import timezone
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=80, unique=True)
+    descripcion = models.TextField('descripción', blank=True)
 
     class Meta:
         verbose_name = 'categoría'
@@ -35,6 +36,7 @@ class Proveedor(models.Model):
     email = models.EmailField('correo electrónico', blank=True)
     telefono = models.CharField('teléfono', max_length=20, blank=True)
     direccion = models.CharField('dirección', max_length=200, blank=True)
+    activo = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = 'proveedor'
@@ -60,17 +62,36 @@ class Cliente(models.Model):
 
 
 class Producto(models.Model):
+    ESTADOS = [('ACTIVO', 'Activo'), ('INACTIVO', 'Inactivo')]
+
     codigo = models.CharField(max_length=40, unique=True)
     nombre = models.CharField(max_length=120)
     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT)
     marca = models.ForeignKey(Marca, on_delete=models.PROTECT, null=True, blank=True)
+    proveedor = models.ForeignKey(
+        Proveedor, on_delete=models.PROTECT, null=True, blank=True, related_name='productos'
+    )
     ubicacion = models.CharField(max_length=100)
     cantidad = models.PositiveIntegerField(default=0)
     stock_minimo = models.PositiveIntegerField(default=5)
+    precio = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal('0.00'),
+        validators=[MinValueValidator(Decimal('0.00'))],
+    )
+    estado = models.CharField(max_length=8, choices=ESTADOS, default='ACTIVO')
 
     class Meta:
         verbose_name = 'producto'
         verbose_name_plural = 'productos'
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(precio__gte=0), name='producto_precio_no_negativo'
+            ),
+            models.CheckConstraint(
+                condition=models.Q(estado__in=['ACTIVO', 'INACTIVO']),
+                name='producto_estado_valido',
+            ),
+        ]
 
     def __str__(self):
         return f"{self.codigo} - {self.nombre}"
@@ -232,6 +253,67 @@ class DetalleVenta(models.Model):
         return f'{self.venta.numero} - {self.producto.codigo} ({self.cantidad})'
 
 
+class Sucursal(models.Model):
+    codigo = models.CharField('código', max_length=30, unique=True)
+    nombre = models.CharField(max_length=120)
+    direccion = models.CharField('dirección', max_length=200, blank=True)
+    activa = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'sucursal'
+        verbose_name_plural = 'sucursales'
+
+    def __str__(self):
+        return f'{self.codigo} - {self.nombre}'
+
+
+class Solicitud(models.Model):
+    ESTADOS = [
+        ('PENDIENTE', 'Pendiente'), ('APROBADA', 'Aprobada'),
+        ('RECHAZADA', 'Rechazada'), ('DESPACHADA', 'Despachada'),
+    ]
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.PROTECT, related_name='solicitudes')
+    fecha = models.DateTimeField(default=timezone.now)
+    estado = models.CharField(max_length=10, choices=ESTADOS, default='PENDIENTE')
+    observaciones = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = 'solicitud'
+        verbose_name_plural = 'solicitudes'
+        permissions = [
+            ('aprobar_solicitud', 'Puede aprobar o rechazar solicitudes'),
+            ('despachar_solicitud', 'Puede despachar solicitudes aprobadas'),
+        ]
+        constraints = [models.CheckConstraint(
+            condition=models.Q(estado__in=['PENDIENTE', 'APROBADA', 'RECHAZADA', 'DESPACHADA']),
+            name='solicitud_estado_valido',
+        )]
+
+    def __str__(self):
+        return f'Solicitud {self.pk} - {self.sucursal.nombre}'
+
+
+class DetalleSolicitud(models.Model):
+    solicitud = models.ForeignKey(Solicitud, on_delete=models.PROTECT, related_name='detalles')
+    producto = models.ForeignKey(Producto, on_delete=models.PROTECT, related_name='detalles_solicitud')
+    cantidad_solicitada = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    cantidad_aprobada = models.PositiveIntegerField(default=0)
+    cantidad_despachada = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'detalle de solicitud'
+        verbose_name_plural = 'detalles de solicitudes'
+        constraints = [
+            models.UniqueConstraint(fields=['solicitud', 'producto'], name='solicitud_producto_unico'),
+            models.CheckConstraint(condition=models.Q(cantidad_solicitada__gte=1), name='solicitud_cantidad_positiva'),
+            models.CheckConstraint(condition=models.Q(cantidad_aprobada__lte=models.F('cantidad_solicitada')), name='solicitud_aprobada_valida'),
+            models.CheckConstraint(condition=models.Q(cantidad_despachada__lte=models.F('cantidad_aprobada')), name='solicitud_despachada_valida'),
+        ]
+
+    def __str__(self):
+        return f'Solicitud {self.solicitud_id} - {self.producto.codigo}'
+
+
 class Movimiento(models.Model):
     TIPOS = [('INGRESO', 'Ingreso'), ('SALIDA', 'Salida')]
     producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
@@ -245,6 +327,10 @@ class Movimiento(models.Model):
     detalle_venta = models.ForeignKey(
         DetalleVenta, on_delete=models.PROTECT, null=True, blank=True
     )
+    solicitud = models.ForeignKey(
+        Solicitud, on_delete=models.PROTECT, null=True, blank=True, related_name='movimientos'
+    )
+    stock_aplicado = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'movimiento'
@@ -292,4 +378,14 @@ class Movimiento(models.Model):
 
     def __str__(self):
         return f"{self.tipo} - {self.producto} ({self.cantidad})"
+
+    def save(self, *args, **kwargs):
+        if self.pk and type(self).objects.filter(pk=self.pk, stock_aplicado=True).exists():
+            raise ValidationError('Un movimiento aplicado al stock no se puede modificar.')
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.pk and type(self).objects.filter(pk=self.pk, stock_aplicado=True).exists():
+            raise ValidationError('Un movimiento aplicado al stock no se puede eliminar.')
+        return super().delete(*args, **kwargs)
 

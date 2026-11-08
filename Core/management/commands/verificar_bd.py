@@ -52,7 +52,8 @@ class Command(BaseCommand):
 
             self.stdout.write(self.style.SUCCESS('Conexión correcta (SELECT 1).'))
             self.stdout.write(f'Alias: {alias}')
-            self.stdout.write(f'Motor: {configuracion["ENGINE"]}')
+            tipo_conexion = 'archivo de desarrollo SQLite' if conexion.vendor == 'sqlite' else 'servidor de base de datos'
+            self.stdout.write(f'Conexión: {tipo_conexion}')
             self.stdout.write(f'Base de datos: {nombre}')
             self.stdout.write(f'Tablas detectadas: {len(tablas)}')
 

@@ -1,0 +1,15 @@
+{% extends 'bodega/base.html' %}
+{% block title %}{{ titulo }} · Music Pro{% endblock %}
+{% block content %}
+<a class="volver" href="{% url 'bodega:catalogo_lista' tipo %}">← Volver a {{ titulo|lower }}</a>
+<div class="titulo-pagina"><h1>{% if es_nuevo %}Crear{% else %}Editar{% endif %} registro</h1></div>
+<section class="tarjeta tarjeta-formulario"><form method="post" class="formulario">{% csrf_token %}
+  {% for error in errores_generales %}<p class="mensaje error" role="alert">{{ error }}</p>{% endfor %}
+  <div class="grilla-formulario">{% for campo in campos %}<div class="campo">
+    {% if campo.entrada == 'checkbox' %}<label class="opcion"><input type="checkbox" name="{{ campo.nombre }}" value="1"{% if campo.valor %} checked{% endif %}> {{ campo.etiqueta }}</label>
+    {% else %}<label for="{{ campo.nombre }}">{{ campo.etiqueta }}</label>{% if campo.entrada == 'textarea' %}<textarea id="{{ campo.nombre }}" name="{{ campo.nombre }}" rows="4">{{ campo.valor }}</textarea>{% else %}<input id="{{ campo.nombre }}" name="{{ campo.nombre }}" type="{{ campo.entrada }}" value="{{ campo.valor }}"{% if campo.maximo %} maxlength="{{ campo.maximo }}"{% endif %}{% if campo.requerido %} required{% endif %}>{% endif %}{% endif %}
+    {% for error in campo.errores %}<small class="enlace-peligro" role="alert">{{ error }}</small>{% endfor %}
+  </div>{% endfor %}</div>
+  <div class="acciones-formulario"><button class="boton primario">Guardar</button><a class="boton secundario" href="{% url 'bodega:catalogo_lista' tipo %}">Cancelar</a></div>
+</form></section>
+{% endblock %}

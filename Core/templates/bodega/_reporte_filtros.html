@@ -1,0 +1,23 @@
+{% if campos %}
+<div class="grilla-formulario">
+  {% for campo in campos %}
+  <div class="campo">
+    <label for="{{ campo.id_html }}">{{ campo.etiqueta }}</label>
+    {% if campo.fecha %}
+      <input id="{{ campo.id_html }}" type="date" name="{{ campo.nombre }}" value="{{ campo.valor }}" min="1000-01-01" max="9999-12-30" required>
+    {% else %}
+      <select id="{{ campo.id_html }}" name="{{ campo.nombre }}">
+        <option value="">Selecciona {{ campo.etiqueta|lower }}</option>
+        {% for opcion in campo.opciones %}<option value="{{ opcion.id }}"{% if campo.valor|stringformat:'s' == opcion.id|stringformat:'s' and not campo.manual %} selected{% endif %}>{{ opcion.etiqueta }}</option>{% endfor %}
+      </select>
+      <details{% if campo.manual %} open{% endif %}>
+        <summary>Ingresar ID si no aparece en la lista</summary>
+        <label for="{{ campo.id_html }}-manual">ID de {{ campo.etiqueta|lower }}</label>
+        <input id="{{ campo.id_html }}-manual" type="number" min="1" step="1" name="{{ campo.nombre }}_manual" value="{{ campo.manual }}">
+        <small>Las listas muestran hasta 100 registros. Si completas este campo, se utiliza este ID.</small>
+      </details>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}<p class="texto-secundario">Este reporte no necesita filtros adicionales.</p>{% endif %}
