@@ -1,6 +1,6 @@
 # Actualizar Music Pro en GitHub
 
-El repositorio existente es [emmanuelpobletepereira-cmd/musicpro_e2](https://github.com/emmanuelpobletepereira-cmd/musicpro_e2). La entrega actual contiene las pantallas propias de Bodega, formularios HTML, autenticación, permisos, stock, solicitudes y 17 reportes operativos. La matriz [Pauta E3 aplicada a Bodega](docs/pauta_e3_bodega.md) explica las tres consultas económicas retiradas por petición del usuario.
+El repositorio existente es [emmanuelpobletepereira-cmd/musicpro_e3](https://github.com/emmanuelpobletepereira-cmd/musicpro_e3). La entrega actual contiene las pantallas propias de Bodega, formularios HTML, autenticación, permisos, stock, solicitudes y 17 reportes operativos. La matriz [Pauta E3 aplicada a Bodega](docs/pauta_e3_bodega.md) explica las tres consultas económicas retiradas por petición del usuario.
 
 ## Revisar la copia local
 
